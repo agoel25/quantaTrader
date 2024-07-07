@@ -4,22 +4,27 @@
 #include <cstdint>
 #include <chrono>
 
-enum class OrderType : uint8_t {
-    MARKET,
-    LIMIT,
-    STOP
+enum class OrderSide : uint8_t {
+    BUY = 0,
+    SELL = 1
 };
 
-enum class OrderSide : uint8_t {
-    BUY,
-    SELL
+enum class OrderType : uint8_t {
+    MARKET = 0, // buy or sell immediately at the best available price
+    LIMIT = 1, // buy or sell at a specific price or better
+    STOP = 2, // buy or sell once the price reaches a specified level
+    STOP_LIMIT = 3, // buy or sell once the price reaches a specified stop level, 
+                    // then execute a limit order at a specified price
+    TRAILING_STOP = 4, // a stop order that moves with the market price to lock in profits
+    TRAILING_STOP_LIMIT = 5 // a trailing stop order that triggers a limit order instead of 
+                            // a market order when the stop level is reached.
 };
 
 enum class OrderTimeInForce : uint8_t {
-    GTC,
-    IOC,
-    AON,
-    FOK
+    GTC = 0,
+    IOC = 1,
+    AON = 2,
+    FOK = 3
 };
 
 class Order {
@@ -42,6 +47,16 @@ public:
     inline uint64_t getOpenQuantity() const { return open_quantity; }
     inline std::chrono::time_point<std::chrono::high_resolution_clock> getTimestamp() const { return timestamp; }
 
+    bool operator==(const Order &other) const
+    {
+        return id == other.id;
+    }
+
+    bool operator!=(const Order &other) const
+    {
+        return !(*this == other);
+    }
+
 private:
     Order(uint64_t id, OrderType type, OrderSide side, OrderTimeInForce time_in_force, uint32_t symbol_id, uint64_t price, uint64_t stop_price, 
         uint64_t quantity, uint64_t executed_quantity, uint64_t open_quantity, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
@@ -63,7 +78,7 @@ private:
     OrderSide side;  // Side of the order
     OrderTimeInForce time_in_force;  // Time in force for the order
     uint32_t symbol_id;  // Symbol identifier
-    uint64_t price;  // Price of the order up to 64-bit precision
+    uint64_t price;  // Price
     uint64_t stop_price;  // Stop price
     uint64_t quantity;  // Quantity of the order
     uint64_t executed_quantity;  // Executed quantity
