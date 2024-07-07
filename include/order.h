@@ -86,4 +86,4 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;  // Time the order was placed
 };
 
-#endif QUANTA_TRADER_ORDER_H
+#endif // QUANTA_TRADER_ORDER_H
