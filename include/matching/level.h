@@ -2,6 +2,8 @@
 #define OUANTA_TRADER_LEVEL_H
 #include "order.h"
 
+namespace QuantaTrader {
+
 enum class LevelSide {
     Buy,
     Sell
@@ -41,5 +43,6 @@ uint64_t price;
     uint32_t symbol_id;
     uint64_t volume;
 };
+}
 
 #endif // OUANTA_TRADER_LEVEL_H

@@ -1,7 +1,8 @@
 #ifndef QUANTA_TRADER_ORDER_BOOK_H
 #define QUANTA_TRADER_ORDER_BOOK_H
-
 #include "order.h"
+
+namespace QuantaTrader {
 
 class OrderBook {
 public:
@@ -29,6 +30,9 @@ public:
     // Retrieves the best ask order
     virtual Order getBestAsk() const = 0;
 
+    // Last traded price if any trades have occurred
+    virtual uint64_t lastTradedPrice() const = 0;
+
     // Retrieves a snapshot of the order book
     virtual std::vector<Order> getOrderBookSnapshot() const = 0;
 
@@ -44,7 +48,12 @@ public:
     // Validates an order
     virtual bool validateOrder(const Order& order) const = 0;
 
+    // Exports the book to a specified path in txt format
+    virtual void export(const std::string &path) const = 0;
+
+    virtual std::string toString() const = 0;
     virtual ~OrderBook() = default;
 };
+}
 
 #endif // QUANTA_TRADER_ORDER_BOOK_H

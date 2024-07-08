@@ -5,6 +5,8 @@
 #include <chrono>
 #include <boost/intrusive/list.hpp>
 
+namespace QuantaTrader {
+
 using namespace boost::intrusive;
 class PriceLevelOrderBook;
 class Level;
@@ -121,5 +123,6 @@ private:
     uint64_t last_executed_quantity; // Quantity of the last portion of the order that was executed
     std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;  // Time the order was placed
 };
+}
 
 #endif // QUANTA_TRADER_ORDER_H
