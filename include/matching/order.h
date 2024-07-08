@@ -11,7 +11,7 @@ enum class OrderSide : uint8_t {
 
 enum class OrderType : uint8_t {
     MARKET = 0, // buy or sell immediately at the best available price
-    LIMIT = 1, // buy or sell at a specific price or better
+    LIMIT = 1, // buy or sell at a specific price or better. not guaranteed to execute 
     STOP = 2, // buy or sell once the price reaches a specified level
     STOP_LIMIT = 3, // buy or sell once the price reaches a specified stop level, 
                     // then execute a limit order at a specified price

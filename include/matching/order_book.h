@@ -14,14 +14,14 @@ public:
     // Modifies an existing order in the order book
     virtual void modifyOrder(uint64_t order_id, uint64_t new_price, uint64_t new_quantity) = 0;
 
+    // Cancels the given property of an order in the book
+    virtual void cancelOrder(uint64_t order_id, uint64_t quantity) = 0;
+
     // Executes an order in the order book
     virtual void executeOrder(uint64_t order_id, uint64_t quantity, uint64_t price) = 0;
 
     // Executes an order in the order book
     virtual void executeOrder(uint64_t order_id, uint64_t quantity) = 0;
-
-    // Cancels the given property of an order in the book
-    virtual void cancelOrder(uint64_t order_id, uint64_t quantity) = 0;
 
     // Retrieves the best bid order
     virtual Order getBestBid() const = 0;
