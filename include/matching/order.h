@@ -77,6 +77,7 @@ public:
         return !(*this == other);
     }
 
+    std::string toString() const;
     // declaring friends so the private section can be accessed
     friend std::ostream &operator<<(std::ostream &os, const Order &order);
     friend class PriceLevelOrderBook;
