@@ -6,6 +6,9 @@ namespace QuantaTrader {
 
 class OrderBook {
 public:
+    // return the symbol id of the book
+    virtual uint32_t getSymbolId() const = 0;
+
     // Adds an order to the order book
     virtual void addOrder(const Order& order) = 0;
     

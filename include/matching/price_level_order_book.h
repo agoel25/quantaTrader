@@ -1,5 +1,5 @@
-#ifndef QUANTA_TRADER_PRICE_LEVEL_ORDERBOOK_H
-#define QUANTA_TRADER_PRICE_LEVEL_ORDERBOOK_H
+#ifndef QUANTA_TRADER_PRICE_LEVEL_ORDER_BOOK_H
+#define QUANTA_TRADER_PRICE_LEVEL_ORDER_BOOK_H
 #include <map>
 #include <limits>
 #include "level.h"
@@ -17,6 +17,10 @@ struct OrderWithLevelIterator {
 class PriceLevelOrderBook : public OrderBook {
 public:
     PriceLevelOrderBook(uint32_t symbol_id, EventHandler &event_handler);
+
+    uint32_t getSymbolID() const override {
+        return symbol_id;
+    }
 
     void addOrder(Order order) override;
 
@@ -89,9 +93,72 @@ protected:
 
     void insertTrailingStopOrder(const Order &order);
 
+    // calculates and sets the stop price of a trailing stop order
     uint64_t calculateStopPrice(Order &order);
 
+    // updates the price of trailing stop bid order
+    void updateBidStopOrders();
+
+    // updates the price of trailing stop ask order
+    void updateAskStopOrders();
+
+    // activates stop limit and restart market orders if the last traded price is suitable.
+    void activateStopOrders();
+
+    // helper function for activateStopOrders for the Bid side
+    bool activateBidStopOrders();
+
+    // helper function for activateStopOrders for the Ask side
+    bool activateAskStopOrders();
+
+    // helper function for activateBidStopOrders and activateAskStopOrders
+    void activateStopOrder(Order order);
+
+    void match(Order &order);
+
+    // matches 2 orders at a particular price
+    void executeOrders(Order &buy, Order &sell, uint64_t executing_price);
+
+    // returns the last traded bid price
+    uint64_t lastTradedBidPrice() const {
+        return last_traded_price;
+    }
+
+    uint64_t lastTradedAskPrice() const {
+        // if no trades have been made return max int
+        if (last_traded_price == 0) {
+            return std::numeric_limits<uint64_t>::max();
+        }
+        // else return last_traded_price
+        return last_traded_price;
+    }
+
+    // symbol ID of the bool
+    uint32_t symbol_id;
+
+    EventHandler &event_handler;
+
+    // current price of the symbol
+    uint64_t last_traded_price;
+
+    uint64_t trailing_bid_price;
+    uint64_t trailing_ask_price;
+
+    // orderID: OrderWithLevelIterator
+    std::unordered_map<uint64_t, OrderWithLevelIterator> orders;
+
+    // price : levels
+    std::map<uint64_t, Level> ask_levels;
+    std::map<uint64_t, Level> bid_levels;
+
+    // price : stop levels
+    std::map<uint64_t, Level> stop_ask_levels;
+    std::map<uint64_t, Level> stop_bid_levels;
+    
+    // price : trailing stop levels
+    std::map<uint64_t, Level> trailing_stop_ask_levels;
+    std::map<uint64_t, Level> trailing_stop_bid_levels;
 };
 }
 
-#endif // QUANTA_TRADER_PRICE_LEVEL_ORDERBOOK_H
+#endif // QUANTA_TRADER_PRICE_LEVEL_ORDER_BOOK_H
