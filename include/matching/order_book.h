@@ -36,6 +36,9 @@ public:
     // Retrieves a snapshot of the order book
     virtual std::vector<Order> getOrderBookSnapshot() const = 0;
 
+    // Whether the book has this order
+    virtual bool hasOrder(uint64_t order_id) const = 0;
+
     // Gets an order from the book
     virtual const Order &getOrder(uint64_t order_id) const = 0;
 
@@ -49,7 +52,7 @@ public:
     virtual bool validateOrder(const Order& order) const = 0;
 
     // Exports the book to a specified path in txt format
-    virtual void export(const std::string &path) const = 0;
+    virtual void dump(const std::string &path) const = 0;
 
     virtual std::string toString() const = 0;
     virtual ~OrderBook() = default;
