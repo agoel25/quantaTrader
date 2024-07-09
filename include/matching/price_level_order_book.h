@@ -3,7 +3,7 @@
 #include <map>
 #include <limits>
 #include "level.h"
-#include "orderbook.h"
+#include "order_book.h"
 #include "order.h"
 #include "event_handler.h"
 
@@ -26,7 +26,7 @@ public:
 
     void deleteOrder(uint64_t order_id) override;
 
-    void modifyOrder(uint64_t order_id, uint64_t new_price, uint64_t new_quantity) override;
+    void modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) override;
 
     void cancelOrder(uint64_t order_id, uint64_t quantity) override;
 

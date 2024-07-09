@@ -16,7 +16,7 @@ public:
     virtual void deleteOrder(uint64_t order_id) = 0;
     
     // Modifies an existing order in the order book
-    virtual void modifyOrder(uint64_t order_id, uint64_t new_price, uint64_t new_quantity) = 0;
+    virtual void modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) = 0;
 
     // Cancels the given property of an order in the book
     virtual void cancelOrder(uint64_t order_id, uint64_t quantity) = 0;
