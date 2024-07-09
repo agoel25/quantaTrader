@@ -68,7 +68,7 @@ public:
         return orders.empty();
     }
 
-    void dump(const std::string &path) const override;
+    void exportOrderBook(const std::string &path) const override;
 
     std::string toString() const override;
     friend std::ostream &operator<<(std::ostream &os, const PriceLevelOrderBook &book);

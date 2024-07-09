@@ -55,7 +55,7 @@ public:
     virtual bool validateOrder(const Order& order) const = 0;
 
     // Exports the book to a specified path in txt format
-    virtual void dump(const std::string &path) const = 0;
+    virtual void exportOrderBook(const std::string &path) const = 0;
 
     virtual std::string toString() const = 0;
     virtual ~OrderBook() = default;
