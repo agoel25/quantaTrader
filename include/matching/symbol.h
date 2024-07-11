@@ -13,4 +13,4 @@ struct Symbol {
 };
 }
 
-#endif // RAPID_TRADER_SYMBOL_H
+#endif // QUANTA_TRADER_SYMBOL_H
