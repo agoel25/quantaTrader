@@ -5,8 +5,8 @@
 namespace QuantaTrader {
 
 enum class LevelSide {
-    Buy,
-    Sell
+    BUY = 0,
+    SELL = 1
 };
 
 using namespace boost::intrusive;
