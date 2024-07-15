@@ -59,7 +59,7 @@ public:
 
     // Exports the engine to a specified path in txt format
     void exportEngine(const std::string &name) const;
-    
+
     friend std::ostream &operator<<(std::ostream &os, const Engine &engine);
 
 private:
@@ -68,4 +68,4 @@ private:
 };
 }
 
-#endif QUANTA_TRADER_ENGINE_H
+#endif // QUANTA_TRADER_ENGINE_H
