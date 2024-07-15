@@ -31,7 +31,7 @@ public:
 
     void addOrder(Order &order);
     void deleteOrder(const Order &order);
-    void updateVolume(uint64_t amount);
+    void reduceVolume(uint64_t amount);
 
     std::string toString() const;
     friend std::ostream &operator<<(std::ostream &os, const Level &level);

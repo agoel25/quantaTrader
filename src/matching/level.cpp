@@ -58,8 +58,9 @@ void deleteOrder(const Order &order) {
     orders.erase(boost::intrusive::list<Order>::s_iterator_to(order));
 }
 
-void updateVolume(uint64_t amount) {
-
+void reduceVolume(uint64_t amount) {
+    assert(volume >= amount);
+    volume -= amount;
 }
 
 }
