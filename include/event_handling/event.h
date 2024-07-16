@@ -8,6 +8,7 @@ struct Event {
     virtual ~Event() = default;
 };
 
+// Engine events
 struct EngineEvent : public Event {
     uint32_t symbol_id;
     explicit EngineEvent(uint32_t symbol_id) : symbol_id(symbol_id) {}
@@ -27,6 +28,7 @@ struct SymbolDeleted : public EngineEvent {
     friend std::ostream &operator<<(std::ostream &os, const SymbolDeleted &notification);
 };
 
+// Order events
 struct OrderEvent : public Event {
     Order order;
     explicit OrderEvent(Order order) : order(std::move(order)) {}
