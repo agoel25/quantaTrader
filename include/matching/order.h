@@ -116,11 +116,11 @@ private:
     uint64_t price;  // Price
     uint64_t stop_price;  // Stop price
     uint64_t trail_amount; // Amount the trailing stop price trails behind the market price
-    uint64_t last_executed_price; // Price at which the last portion of the order was executed
+    uint64_t last_executed_price;  // Price at which the last portion of the order was executed
     uint64_t quantity;  // Quantity of the order
     uint64_t executed_quantity;  // Executed quantity
     uint64_t open_quantity;  // Open quantity
-    uint64_t last_executed_quantity; // Quantity of the last portion of the order that was executed
+    uint64_t last_executed_quantity;  // Quantity of the last portion of the order that was executed
     std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;  // Time the order was placed
 };
 }
