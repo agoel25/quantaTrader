@@ -63,4 +63,14 @@ void reduceVolume(uint64_t amount) {
     volume -= amount;
 }
 
+std::string Level::toString() const {
+    std::string out;
+    out += std::to_string(price) + " | " + std::to_string(volume) + "\n";
+    return out;
+}
+
+std::ostream &operator<<(std::ostream &os, const Level &level) {
+    os << level.toString();
+    return os;
+}
 }
