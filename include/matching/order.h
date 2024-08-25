@@ -28,10 +28,10 @@ enum class OrderType : uint8_t {
 };
 
 enum class OrderTimeInForce : uint8_t {
-    GTC = 0,
-    IOC = 1,
-    AON = 2,
-    FOK = 3
+    GTC = 0, // Good Till Cancelled (Stays open until the trader cancels it)
+    IOC = 1, // Immediate Or Cancel (Executes any portion available immediately; cancels the rest)
+    AON = 2, // All Or None (Executes only if the entire order can be filled; waits if necessary)
+    FOK = 3 // Fill Or Kill (Must be executed fully and immediately or is canceled)
 };
 
 struct Order : public list_base_hook<> {
