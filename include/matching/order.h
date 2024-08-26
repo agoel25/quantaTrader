@@ -12,15 +12,15 @@ class PriceLevelOrderBook;
 class Level;
 
 enum class OrderSide : uint8_t {
-    BUY = 0,
-    SELL = 1
+    ASK = 0,
+    BID = 1
 };
 
 enum class OrderType : uint8_t {
-    MARKET = 0, // buy or sell immediately at the best available price
-    LIMIT = 1, // buy or sell at a specific price or better. not guaranteed to execute 
-    STOP = 2, // buy or sell once the price reaches a specified level
-    STOP_LIMIT = 3, // buy or sell once the price reaches a specified stop level, 
+    MARKET = 0, // ask or bid immediately at the best available price
+    LIMIT = 1, // ask or bid at a specific price or better. not guaranteed to execute 
+    STOP = 2, // ask or bid once the price reaches a specified level
+    STOP_LIMIT = 3, // ask or bid once the price reaches a specified stop level, 
                     // then execute a limit order at a specified price
     TRAILING_STOP = 4, // a stop order that moves with the market price to lock in profits
     TRAILING_STOP_LIMIT = 5 // a trailing stop order that triggers a limit order instead of 
@@ -36,23 +36,23 @@ enum class OrderTimeInForce : uint8_t {
 
 struct Order : public list_base_hook<> {
 public:
-    static Order marketBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force);
-    static Order marketSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order marketAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order marketBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force);
 
-    static Order limitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force);
-    static Order limitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order limitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order limitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force);
 
-    static Order stopBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order stopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
     static Order stopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
 
-    static Order stopLimitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
-    static Order stopLimitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order stopLimitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order stopLimitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force);
 
-    static Order trailingStopBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
-    static Order trailingStopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order trailingStopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order trailingStopBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
 
-    static Order trailingStopLimitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
-    static Order trailingStopLimitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order trailingStopLimitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
+    static Order trailingStopLimitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force);
 
     inline uint64_t getId() const { return id; }
     inline OrderType getType() const { return type; }

@@ -117,7 +117,7 @@ protected:
     void match(Order &order);
 
     // matches 2 orders at a particular price
-    void executeOrders(Order &buy, Order &sell, uint64_t executing_price);
+    void executeOrders(Order &ask, Order &bid, uint64_t executing_price);
 
     // returns the last traded bid price
     uint64_t lastTradedBidPrice() const {
@@ -133,7 +133,7 @@ protected:
         return last_traded_price;
     }
 
-    // symbol ID of the bool
+    // symbol ID of the book
     uint32_t symbol_id;
 
     EventHandler &event_handler;

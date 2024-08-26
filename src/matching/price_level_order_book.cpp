@@ -32,7 +32,42 @@ void PriceLevelOrderBook::addOrder(Order order) {
 }
 
 void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
-
+    auto orders_it = orders.find(order_id);
+    auto &levels_it = orders_it->second.level_it;
+    Order &order_to_delete = orders_it->second.order;
+    event_handler.handleOrderDeleted(OrderDeleted{orders_it->second.order});
+    levels_it->second.deleteOrder(order_to_delete);
+    if (levels_it->second.empty()) {
+        // delete from appropriate order side the relevant order type
+        switch (order_to_delete.getType()) {
+            bool isAsk = order.getSide() == OrderSide::ASK;
+            case OrderType::LIMIT:
+                if (isAsk) {
+                    ask_levels.erase(levels_it);
+                } else {
+                    bid_levels.erase(levels_it);
+                }
+                break;
+            case OrderType::STOP:
+            case OrderType::STOP_LIMIT:
+                if (isAsk) {
+                    stop_ask_levels.erase(levels_it);
+                } else {
+                    stop_bid_levels.erase(levels_it);
+                }
+                break;
+            OrderType::TRAILING_STOP:
+            OrderType::TRAILING_STOP_LIMIT:
+                if (isAsk) {
+                    trailing_stop_ask_levels.erase(levels_it);
+                } else {
+                    trailing_stop_bid_levels.erase(levels_it);
+                }
+                break;
+        }
+    }
+    orders.erase(orders_it);
+    activateStopOrders();
 }
 
 void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) override {
@@ -111,7 +146,7 @@ void PriceLevelOrderBook::match(Order &order) {
 
 }
 
-void PriceLevelOrderBook::executeOrders(Order &buy, Order &sell, uint64_t executing_price) {
+void PriceLevelOrderBook::executeOrders(Order &ask, Order &bid, uint64_t executing_price) {
 
 }
 
