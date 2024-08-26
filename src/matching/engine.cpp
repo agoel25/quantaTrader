@@ -79,5 +79,77 @@ void OrderBookHandler::executeOrder(uint32_t symbol_id, uint64_t order_id, uint6
     book->executeOrder(order_id, quantity);
 }
 
+std::string OrderBookHandler::toString() {
+    std::ostringstream oss;
 
+    for (const auto& [symbol_id, book_ptr] : symbol_to_order_book) {
+        if (book_ptr) {
+            oss << "Symbol ID: " << symbol_id << "\n";
+            oss << book_ptr->toString() << "\n";
+        } else {
+            oss << "Symbol ID: " << symbol_id << " has a null OrderBook.\n";
+        }
+    }
+
+    return oss.str();
+}
+
+// constructor 
+Engine::Engine(std::unique_ptr<EventHandler> event_handler): orderbook_handler(std::make_unique<OrderBookHandler>(std::move(event_handler))) {}
+
+void Engine::addSymbol(uint32_t symbol_id, const std::string &symbol_name) {
+    symbol_id_to_symbol[symbol_id] = std::make_unique<Symbol>(symbol_id, symbol_name);
+    orderbook_handler->addOrderBook(symbol_id, symbol_name);
+}
+
+void Engine::deleteSymbol(uint32_t symbol_id) {
+    auto it = symbol_id_to_symbol.find(symbol_id);
+    if (it != symbol_id_to_symbol.end()) {
+        orderbook_handler->deleteOrderBook(symbol_id, it->second->name);
+        symbol_id_to_symbol.erase(it);
+    }
+}
+
+bool Engine::hasSymbol(uint32_t symbol_id) const {
+    return symbol_id_to_symbol.count(symbol_id) > 0;
+}
+
+void Engine::addOrder(const Order &order) {
+    orderbook_handler->addOrder(order);
+}
+
+void Engine::deleteOrder(uint32_t symbol_id, uint64_t order_id) {
+    orderbook_handler->deleteOrder(symbol_id, order_id);
+}
+
+void Engine::cancelOrder(uint32_t symbol_id, uint64_t order_id, uint64_t cancelled_quantity) {
+    orderbook_handler->cancelOrder(symbol_id, order_id, cancelled_quantity);
+}
+
+void Engine::replaceOrder(uint32_t symbol_id, uint64_t order_id, uint64_t new_order_id, uint64_t new_price) {
+    orderbook_handler->replaceOrder(symbol_id, order_id, new_order_id, new_price);
+}
+
+void Engine::executeOrder(uint32_t symbol_id, uint64_t order_id, uint64_t quantity, uint64_t price) {
+    orderbook_handler->executeOrder(symbol_id, order_id, quantity, price);
+}
+
+void Engine::executeOrder(uint32_t symbol_id, uint64_t order_id, uint64_t quantity) {
+    orderbook_handler->executeOrder(symbol_id, order_id, quantity);
+}
+
+std::String Engine::toString() const {
+    return orderbook_handler->toString();
+}
+
+std::ostream &operator<<(std::ostream &os, const Engine &engine) {
+    os << engine.orderbook_handler->toString();
+    return os;
+}
+
+void Engine::exportEngine(const std::string &name) const {
+    std::ofstream file(name);
+    file << *this;
+    file.close();
+}
 }
