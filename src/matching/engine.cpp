@@ -4,7 +4,6 @@
 namespace QuantaTrader {
 OrderBookHandler::OrderBookHandler(std::unique_ptr<EventHandler> event_handler): event_handler_(std::move(event_handler)) {}
 
-
 void OrderBookHandler::addOrderBook(uint32_t symbol_id, std::string symbol_name) {
     auto it = symbol_to_order_book.find(symbol_id);
     if (it != symbol_to_order_book.end()) {
