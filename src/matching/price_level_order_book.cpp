@@ -71,7 +71,13 @@ void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
 }
 
 void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) override {
-
+    auto orders_it = orders.find(order_id);
+    Order new_order = orders_it->second.order;
+    new_order.setId(new_order_id);
+    new_order.setPrice(new_price);
+    deleteOrder(order_id);
+    addOrder(new_order);
+    activateStopOrders();
 }
 
 void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) override {
