@@ -163,7 +163,46 @@ void PriceLevelOrderBook::insertLimitOrder(const Order &order) {
 }
 
 void PriceLevelOrderBook::addStopOrder(Order &order) {
-
+    if (order.getType() == OrderType::TRAILING_STOP || order.getType() == OrderType::TRAILING_STOP_LIMIT) {
+        calculateStopPrice(order);
+    }
+    // get market price at which the stock traded last
+    uint64_t market_price = 0;
+    if (order.getSide() == OrderSide::ASK) {
+        market_price = lastTradedPriceBid();
+    } else {
+        market_price = lastTradedPriceAsk();
+    }
+    uint64_t order_stop_price = order.getStopPrice();
+    // the stop order can be matched if market price <= stop price for ask orders
+    //                           and if market price >= stop price for bid orders
+    bool match = false;
+    if (order.getSide() == OrderSide::ASK && market_price <= order_stop_price) {
+        match = true;
+    } else if (order.getSide() == OrderSide::BID && market_price >= order_stop_price) {
+        match = true;
+    }
+    if (match) {
+        if (order.getType() == OrderType::STOP || order.getType() == OrderType::TRAILING_STOP) {
+            order.setType(OrderType::Market);
+        } else { // for STOP_LIMIT and TRAILING_STOP_LIMIT orders
+            order.setType(OrderType::Limit);
+        }
+        order.setStopPrice(0);
+        order.setTrailAmount(0);
+        event_handler.handleOrderUpdated(OrderUpdated{order});
+        if (order.getType() == OrderType::MARKET) {
+            addMarketOrder(order)
+        } else {
+            addLimitOrder(order);
+        }
+        return;
+    }
+    if (order.getType() == OrderType::TRAILING_STOP || order.getType() == OrderType::TRAILING_STOP_LIMIT) {
+        insertTrailingStopOrder(order);
+    } else {
+        insertStopOrder(order);
+    }
 }
 
 void PriceLevelOrderBook::insertStopOrder(const Order &order) {
@@ -204,6 +243,10 @@ void PriceLevelOrderBook::activateStopOrder(Order order) {
 
 void PriceLevelOrderBook::match(Order &order) {
 
+}
+
+void PriceLevelOrderBook::canMatchOrder(Order &order) const {
+    
 }
 
 void PriceLevelOrderBook::executeOrders(Order &ask, Order &bid, uint64_t executing_price) {
