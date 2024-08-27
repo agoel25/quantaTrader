@@ -96,11 +96,34 @@ void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) over
 }
 
 void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uint64_t price) override {
-
+    auto orders_it = orders.find(order_id);
+    Order &order_to_execute = orders_it->second.order;
+    uint64_t executing_quantity = std::min(quantity, order_to_execute.getOpenQuantity());
+    order_to_execute.execute(price, executing_quantity);
+    last_traded_price = price;
+    event_handler.handleOrderExecuted(OrderExecuted{order_to_execute});
+    Level &level_to_execute = orders_it->second.level_it->second;
+    level_to_execute.reduceVolume(order_to_execute.getLastExecutedQuantity());
+    if (order_to_execute.getOpenQuantity() == 0) {
+        deleteOrder(order_id, true);
+    }
+    activateStopOrders();
 }
 
 void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) override {
-
+    auto orders_it = orders.find(order_id);
+    Order &order_to_execute = orders_it->second.order;
+    uint64_t executing_quantity = std::min(quantity, order_to_execute.getOpenQuantity());
+    uint64_t executing_price = order_to_execute.getPrice();
+    order_to_execute.execute(executing_price, executing_quantity);
+    last_traded_price = executing_price;
+    event_handler.handleOrderExecuted(OrderExecuted{order_to_execute});
+    Level &level_to_execute = orders_it->second.level_it->second;
+    level_to_execute.reduceVolume(order_to_execute.getLastExecutedQuantity());
+    if (order_to_execute.getOpenQuantity() == 0) {
+        deleteOrder(order_id, true);
+    }
+    activateStopOrders();
 }
 
 void PriceLevelOrderBook::addMarketOrder(Order &order) {
