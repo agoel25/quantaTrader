@@ -81,7 +81,18 @@ void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, 
 }
 
 void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) override {
-
+    auto orders_it = orders.find(order_id);
+    auto &level_it = orders_it->second.level_it;
+    Level &level_to_cancel = level_it->second;
+    Order &order_to_cancel = orders_it->second.order;
+    uint64_t quantity_before_cancel = order_to_cancel.getOpenQuantity();
+    order_to_cancel.setQuantity(quantity);
+    event_handler.handleOrderUpdated(OrderUpdated{order_to_cancel});
+    level_to_cancel.reduceVolume(quantity_before_cancel - order_to_cancel.getOpenQuantity());
+    if (order_to_cancel.getOpenQuantity() == 0) {
+        deleteOrder(order_id, true);
+    }
+    activateStopOrders();
 }
 
 void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uint64_t price) override {
