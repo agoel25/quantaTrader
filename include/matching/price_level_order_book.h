@@ -78,9 +78,6 @@ protected:
 
     void addMarketOrder(Order &order);
 
-    // helper function for addMarketOrder
-    void insertMarketOrder(const Order &order);
-
     void addLimitOrder(Order &order);
 
     // helper function for addLimitOrder

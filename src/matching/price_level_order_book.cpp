@@ -9,7 +9,7 @@ PriceLevelOrderBook::PriceLevelOrderBook(uint32_t symbol_id, EventHandler &event
     event_handler(event_handler) {
         last_traded_price = 0;
         trailing_bid_price = 0;
-        trailing_ask_price = INT_MAX;
+        trailing_ask_price = std::numeric_limits<uint64_t>::max();
     }
 
 void PriceLevelOrderBook::addOrder(Order order) {
@@ -104,19 +104,39 @@ void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) ove
 }
 
 void PriceLevelOrderBook::addMarketOrder(Order &order) {
-
-}
-
-void PriceLevelOrderBook::insertMarketOrder(const Order &order) {
-
+    // Market orders are traded instantly at the best available price
+    if (order.getSide() == OrderSide::ASK) {
+        order.setPrice(0)
+    } else {
+        order.setPrice(std::numeric_limits<uint64_t>::max());
+    }
+    match(order); // matching takes care of deleting the order as well
+    event_handler.handleOrderDeleted(OrderDeleted{order});
 }
 
 void PriceLevelOrderBook::addLimitOrder(Order &order) {
-
+    match(order);
+    // IOC and FOK orders need to be executed immediately
+    if (order.getOpenQuantity() != 0 && order.getTimeInForce() != OrderTimeInForce::IOC && order.getTimeInForce() != OrderTimeInForce::FOK) {
+        insertLimitOrder(order);
+    } else {
+        event_handler.handleOrderDeleted(OrderDeleted{order});
+    }
 }
 
 void PriceLevelOrderBook::insertLimitOrder(const Order &order) {
-
+    if (order.getSide() == OrderSide::ASK) {
+        // using C++17 structured binding to hold the return value from emplace() 
+        // first value is an iterator, second value is a boolean indicating whether emplace was successful
+        auto [level_it, inserted] = ask_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::Ask, symbol_id));
+        auto [orders_it, success] = orders.emplace(order.getOrderID(), OrderWithLevelIterator{order, level_it});
+        level_it->second.addOrder(orders_it->second.order);
+    }
+    else {
+        auto [level_it, inserted] = bid_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::Bid, symbol_id));
+        auto [orders_it, success] = orders.emplace(order.getOrderID(), OrderWithLevelIterator{order, level_it});
+        level_it->second.addOrder(orders_it->second.order);
+    }
 }
 
 void PriceLevelOrderBook::addStopOrder(Order &order) {
