@@ -296,7 +296,7 @@ uint64_t PriceLevelOrderBook::calculateStopPrice(Order &order) {
     }
 }
 
-void PriceLevelOrderBook::updateBuyStopOrders() {
+void PriceLevelOrderBook::updateTrailingBuyStopOrders() {
     // if the trailing sell price > last traded sell price, market has moved in the favorable direction for trailing 
     // stop buy orders, we need to update their stop price
     if (trailing_sell_price > lastTradedSellPrice() && !trailing_stop_buy_levels.empty()) {
@@ -323,7 +323,7 @@ void PriceLevelOrderBook::updateBuyStopOrders() {
     }
 }
 
-void PriceLevelOrderBook::updateSellStopOrders() {
+void PriceLevelOrderBook::updateTrailingSellStopOrders() {
     // if the trailing buy price < last traded buy price, market has moved in a favorable direction for trailing
     // stop sell orders, we need to update their stop price
     if (trailing_buy_price < lastTradedBuyPrice() && !trailing_stop_sell_levels.empty()) {
@@ -355,9 +355,9 @@ void PriceLevelOrderBook::activateStopOrders() {
     bool continue = true;
     while (continue) {
         continue = activateBuyStopOrders();
-        updateSellStopOrders();
+        updateTrailingSellStopOrders();
         continue = activateSellStopOrders();
-        updateBuyStopOrders();
+        updateTrailingBuyStopOrders();
     }
 }
 

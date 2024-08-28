@@ -95,10 +95,10 @@ protected:
     uint64_t calculateStopPrice(Order &order);
 
     // updates the price of trailing stop buy order
-    void updateBuyStopOrders();
+    void updateTrailingBuyStopOrders();
 
     // updates the price of trailing stop sell order
-    void updateSellStopOrders();
+    void updateTrailingSellStopOrders();
 
     // activates stop limit and restart market orders if the last traded price is suitable.
     void activateStopOrders();
