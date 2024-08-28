@@ -297,11 +297,56 @@ uint64_t PriceLevelOrderBook::calculateStopPrice(Order &order) {
 }
 
 void PriceLevelOrderBook::updateBuyStopOrders() {
+    // if the trailing sell price > last traded sell price, market has moved in the favorable direction for trailing 
+    // stop buy orders, we need to update their stop price
+    if (trailing_sell_price > lastTradedSellPrice() && !trailing_stop_buy_levels.empty()) {
+        std::map<uint64_t, Level> updated_trailing_levels; // temp map for updated levels 
+        for (auto& [level_price, level] : trailing_stop_buy_levels) {
+            // for each order in the level, calculate the new price, remove the previous order and add the new order
+            while (!level.empty()) {
+                Order& stop_order = level.front();
+                uint64_t new_stop_price = calculateStopPrice(stop_order);
 
+                auto updated_level_it = updated_trailing_levels.emplace(
+                    std::make_tuple(new_stop_price), std::make_tuple(new_stop_price, LevelSide::BUY, symbol_id)).first;
+                
+                orders[stop_order.getId()].level_it = updated_level_it;
+                level.popFront();
+                updated_level_it->second.addOrder(stop_order);
+                event_handler.handleOrderUpdated(OrderUpdated{stop_order});
+            }
+        }
+        // swap the old levels with the new ones
+        std::swap(trailing_stop_buy_levels, updated_trailing_levels);
+    } else {
+        trailing_sell_price = last_traded_price;
+    }
 }
 
 void PriceLevelOrderBook::updateSellStopOrders() {
+    // if the trailing buy price < last traded buy price, market has moved in a favorable direction for trailing
+    // stop sell orders, we need to update their stop price
+    if (trailing_buy_price < lastTradedBuyPrice() && !trailing_stop_sell_levels.empty()) {
+        std::map<uint64_t, Level> updated_trailing_levels;
+        for (auto& [level_price, level] : trailing_stop_sell_levels) {
+            while (!level.empty()) {
+                Order& stop_order = level.front();
+                uint64_t new_stop_price = calculateStopPrice(stop_order);
 
+                auto updated_level_it = updated_trailing_levels.emplace(
+                    std::make_tuple(new_stop_price), std::make_tuple(new_stop_price, LevelSide::SELL, symbol_id)).first;
+                
+                orders[stop_order.getId()].level_it = updated_level_it;
+                level.popFront();
+                updated_level_it->second.addOrder(stop_order);
+                event_handler.handleOrderUpdated(OrderUpdated{stop_order});
+            }
+        }
+        // swap the old levels with the new ones
+        std::swap(trailing_stop_sell_levels, updated_trailing_levels);
+    } else {
+        trailing_buy_price = last_traded_price;
+    }
 }
 
 void PriceLevelOrderBook::activateStopOrders() {
