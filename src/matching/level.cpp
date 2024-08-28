@@ -43,10 +43,10 @@ void Level::removeBack() {
 }
 
 void addOrder(Order &order) {
-    if (order.getSide() == OrderSide::ASK) {
-        assert(side == LevelSide::ASK);
+    if (order.getSide() == OrderSide::SELL) {
+        assert(side == LevelSide::SELL);
     } else {
-        assert(side == LevelSide::BID);
+        assert(side == LevelSide::BUY);
     }
     assert(order.getSymbolID() == symbol_id);
     volume += order.getOpenQuantity();

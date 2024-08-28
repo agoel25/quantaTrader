@@ -24,57 +24,57 @@ Order::Order(uint64_t id, OrderType type, OrderSide side, OrderTimeInForce time_
     }
 
 // Market Orders
-Order Order::marketAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::MARKET, OrderSide::ASK, time_in_force, symbol_id, 0, 0, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::marketSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::MARKET, OrderSide::SELL, time_in_force, symbol_id, 0, 0, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::marketBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::MARKET, OrderSide::BID, time_in_force, symbol_id, 0, 0, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::marketBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::MARKET, OrderSide::BUY, time_in_force, symbol_id, 0, 0, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
 // Limit Orders
-Order Order::limitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::LIMIT, OrderSide::ASK, time_in_force, symbol_id, price, 0, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::limitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::LIMIT, OrderSide::SELL, time_in_force, symbol_id, price, 0, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::limitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::LIMIT, OrderSide::BID, time_in_force, symbol_id, price, 0, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::limitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::LIMIT, OrderSide::BUY, time_in_force, symbol_id, price, 0, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
 // Stop Orders
-Order Order::stopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::STOP, OrderSide::ASK, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::stopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::STOP, OrderSide::SELL, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::stopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::STOP, OrderSide::BID, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::stopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::STOP, OrderSide::BUY, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
 // Stop Limit Orders
-Order Order::stopLimitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::STOP_LIMIT, OrderSide::ASK, time_in_force, symbol_id, price, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::stopLimitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::STOP_LIMIT, OrderSide::SELL, time_in_force, symbol_id, price, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::stopLimitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::STOP_LIMIT, OrderSide::BID, time_in_force, symbol_id, price, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
+Order Order::stopLimitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::STOP_LIMIT, OrderSide::BUY, time_in_force, symbol_id, price, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
 // Trailing Stop Orders
-Order Order::trailingStopAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::TRAILING_STOP, OrderSide::ASK, time_in_force, symbol_id, 0, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
+Order Order::trailingStopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::TRAILING_STOP, OrderSide::SELL, time_in_force, symbol_id, 0, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::trailingStopBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::TRAILING_STOP, OrderSide::BID, time_in_force, symbol_id, 0, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
+Order Order::trailingStopBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::TRAILING_STOP, OrderSide::BUY, time_in_force, symbol_id, 0, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
 }
 
 // Trailing Stop Limit Orders
-Order Order::trailingStopLimitAskOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::TRAILING_STOP_LIMIT, OrderSide::ASK, time_in_force, symbol_id, price, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
+Order Order::trailingStopLimitSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::TRAILING_STOP_LIMIT, OrderSide::SELL, time_in_force, symbol_id, price, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::trailingStopLimitBidOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
-    return Order(order_id, OrderType::TRAILING_STOP_LIMIT, OrderSide::BID, time_in_force, symbol_id, price, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
+Order Order::trailingStopLimitBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t price, uint64_t trail_amount, uint64_t quantity, OrderTimeInForce time_in_force) {
+    return Order(order_id, OrderType::TRAILING_STOP_LIMIT, OrderSide::BUY, time_in_force, symbol_id, price, 0, trail_amount, quantity, std::chrono::high_resolution_clock::now());
 }
 
 std::string typeToString(OrderType type) {
@@ -98,10 +98,10 @@ std::string typeToString(OrderType type) {
 
 std::string sideToString(OrderSide side) {
     switch (side) {
-        case OrderSide::ASK:
-            return "ASK";
-        case OrderSide::BID:
-            return "BID";
+        case OrderSide::SELL:
+            return "SELL";
+        case OrderSide::BUY:
+            return "BUY";
         default:
             return "UNKNOWN";
     }

@@ -4,6 +4,7 @@
 #include <limits>
 #include "level.h"
 #include "order_book.h"
+#include "robin_hood.h"
 #include "order.h"
 #include "event_handler.h"
 
@@ -34,22 +35,22 @@ public:
 
     void executeOrder(uint64_t order_id, uint64_t quantity) override;
 
-    uint64_t getBestBid() const override {
-        // if there are no bid levels, return 0
-        if (bid_levels.empty()) {
+    uint64_t getBestBuy() const override {
+        // if there are no buy levels, return 0
+        if (buy_levels.empty()) {
             return 0;
         }
-        // else return the highest bid level
-        return bid_levels.rbegin()->first;
+        // else return the highest buy level
+        return buy_levels.rbegin()->first;
     }
 
-    uint64_t getBestAsk() const override {
-        // if there are no ask levels, return max int
-        if (ask_levels.empty()) {
+    uint64_t getBestSell() const override {
+        // if there are no sell levels, return max int
+        if (sell_levels.empty()) {
             return std::numeric_limits<uint64_t>::max();
         }
-        // else return the lowest ask level
-        return ask_levels.begin()->first;
+        // else return the lowest sell level
+        return sell_levels.begin()->first;
     }
 
     uint64_t lastTradedPrice() const override {
@@ -93,22 +94,22 @@ protected:
     // calculates and sets the stop price of a trailing stop order
     uint64_t calculateStopPrice(Order &order);
 
-    // updates the price of trailing stop bid order
-    void updateBidStopOrders();
+    // updates the price of trailing stop buy order
+    void updateBuyStopOrders();
 
-    // updates the price of trailing stop ask order
-    void updateAskStopOrders();
+    // updates the price of trailing stop sell order
+    void updateSellStopOrders();
 
     // activates stop limit and restart market orders if the last traded price is suitable.
     void activateStopOrders();
 
-    // helper function for activateStopOrders for the Bid side
-    bool activateBidStopOrders();
+    // helper function for activateStopOrders for the Buy side
+    bool activateBuyStopOrders();
 
-    // helper function for activateStopOrders for the Ask side
-    bool activateAskStopOrders();
+    // helper function for activateStopOrders for the Sell side
+    bool activateSellStopOrders();
 
-    // helper function for activateBidStopOrders and activateAskStopOrders
+    // helper function for activateBuyStopOrders and activateSellStopOrders
     void activateStopOrder(Order order);
 
     void match(Order &order);
@@ -117,14 +118,14 @@ protected:
     [[nodiscard]] bool canMatchOrder(const Order &order) const;
 
     // matches 2 orders at a particular price
-    void executeOrders(Order &ask, Order &bid, uint64_t executing_price);
+    void executeOrders(Order &sell, Order &buy, uint64_t executing_price);
 
-    // returns the last traded bid price
-    uint64_t lastTradedBidPrice() const {
+    // returns the last traded buy price
+    uint64_t lastTradedBuyPrice() const {
         return last_traded_price;
     }
 
-    uint64_t lastTradedAskPrice() const {
+    uint64_t lastTradedSellPrice() const {
         // if no trades have been made return max int
         if (last_traded_price == 0) {
             return std::numeric_limits<uint64_t>::max();
@@ -141,23 +142,27 @@ protected:
     // current price of the symbol
     uint64_t last_traded_price;
 
-    uint64_t trailing_bid_price;
-    uint64_t trailing_ask_price;
+    uint64_t trailing_buy_price;
+    uint64_t trailing_sell_price;
 
+    // using robin_hood unordered_map : https://github.com/martinus/robin-hood-hashing
+    // for availability of reverse traversal of the map, and better performance
     // orderID: OrderWithLevelIterator
-    std::unordered_map<uint64_t, OrderWithLevelIterator> orders;
+    robin_hood::unordered_map<uint64_t, OrderWithLevelIterator> orders;
 
+    // buy levels are sorted in ascending order
+    // sell levels are sorted in descending order
     // price : levels
-    std::map<uint64_t, Level> ask_levels;
-    std::map<uint64_t, Level> bid_levels;
+    std::map<uint64_t, Level> sell_levels;
+    std::map<uint64_t, Level> buy_levels;
 
     // price : stop levels
-    std::map<uint64_t, Level> stop_ask_levels;
-    std::map<uint64_t, Level> stop_bid_levels;
+    std::map<uint64_t, Level> stop_sell_levels;
+    std::map<uint64_t, Level> stop_buy_levels;
     
     // price : trailing stop levels
-    std::map<uint64_t, Level> trailing_stop_ask_levels;
-    std::map<uint64_t, Level> trailing_stop_bid_levels;
+    std::map<uint64_t, Level> trailing_stop_sell_levels;
+    std::map<uint64_t, Level> trailing_stop_buy_levels;
 };
 }
 

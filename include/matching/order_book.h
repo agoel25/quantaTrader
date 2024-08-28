@@ -27,11 +27,11 @@ public:
     // Executes an order in the order book
     virtual void executeOrder(uint64_t order_id, uint64_t quantity) = 0;
 
-    // Retrieves the best bid order
-    virtual Order getBestBid() const = 0;
+    // Retrieves the best buy order
+    virtual Order getBestBuy() const = 0;
 
-    // Retrieves the best ask order
-    virtual Order getBestAsk() const = 0;
+    // Retrieves the best sell order
+    virtual Order getBestSell() const = 0;
 
     // Last traded price if any trades have occurred
     virtual uint64_t lastTradedPrice() const = 0;
