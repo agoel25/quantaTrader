@@ -43,8 +43,8 @@ void Level::removeBack() {
 }
 
 void addOrder(Order &order) {
-    if (order.getSide() == OrderSide::SELL) {
-        assert(side == LevelSide::SELL);
+    if (order.getSide() == OrderSide::ASK) {
+        assert(side == LevelSide::ASK);
     } else {
         assert(side == LevelSide::BUY);
     }

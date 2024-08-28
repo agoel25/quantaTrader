@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "robin_hood.h"
 #include "order.h"
 #include "order_book.h"
 #include "symbol.h"
@@ -64,7 +65,7 @@ public:
 
 private:
     std::unique_ptr<OrderBookHandler> orderbook_handler;
-    std::unordered_map<uint32_t, std::unique_ptr<Symbol>> symbol_id_to_symbol;
+    robin_hood::unordered_map<uint32_t, std::unique_ptr<Symbol>> symbol_id_to_symbol;
 };
 }
 

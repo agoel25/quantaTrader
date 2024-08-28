@@ -46,7 +46,7 @@ Order Order::stopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_
     return Order(order_id, OrderType::STOP, OrderSide::SELL, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
-Order Order::stopSellOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
+Order Order::stopBuyOrder(uint64_t order_id, uint32_t symbol_id, uint64_t stop_price, uint64_t quantity, OrderTimeInForce time_in_force) {
     return Order(order_id, OrderType::STOP, OrderSide::BUY, time_in_force, symbol_id, 0, stop_price, 0, quantity, std::chrono::high_resolution_clock::now());
 }
 
