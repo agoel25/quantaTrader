@@ -150,8 +150,8 @@ protected:
     // orderID: OrderWithLevelIterator
     robin_hood::unordered_map<uint64_t, OrderWithLevelIterator> orders;
 
-    // buy levels are sorted in ascending order
-    // sell levels are sorted in descending order
+    // both levels are sorted in ascending order, its the calling function's responsibility
+    // to use the sell levels in descending and buy orders in ascending order
     // price : levels
     std::map<uint64_t, Level> sell_levels;
     std::map<uint64_t, Level> buy_levels;

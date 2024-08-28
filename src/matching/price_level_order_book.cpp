@@ -90,7 +90,7 @@ void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) over
     event_handler.handleOrderUpdated(OrderUpdated{order_to_cancel});
     level_to_cancel.reduceVolume(quantity_before_cancel - order_to_cancel.getOpenQuantity());
     if (order_to_cancel.getOpenQuantity() == 0) {
-        deleteOrder(order_id, true);
+        deleteOrder(order_id);
     }
     activateStopOrders();
 }
@@ -105,7 +105,7 @@ void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uin
     Level &level_to_execute = orders_it->second.level_it->second;
     level_to_execute.reduceVolume(order_to_execute.getLastExecutedQuantity());
     if (order_to_execute.getOpenQuantity() == 0) {
-        deleteOrder(order_id, true);
+        deleteOrder(order_id);
     }
     activateStopOrders();
 }
@@ -121,7 +121,7 @@ void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) ove
     Level &level_to_execute = orders_it->second.level_it->second;
     level_to_execute.reduceVolume(order_to_execute.getLastExecutedQuantity());
     if (order_to_execute.getOpenQuantity() == 0) {
-        deleteOrder(order_id, true);
+        deleteOrder(order_id);
     }
     activateStopOrders();
 }
@@ -389,6 +389,7 @@ bool PriceLevelOrderBook::activateBuyStopOrders() {
 bool PriceLevelOrderBook::activateSellStopOrders() {
     bool activated_orders = false;
     uint64_t last_buy_price = lastTradedBuyPrice();
+    // 
     auto stop_levels_it = stop_sell_levels.rbegin();
     // if the current stop level price >= last buy price, it is eligible for activation
     while (stop_levels_it != stop_sell_levels.rend() && stop_levels_it->first >= last_buy_price) {
@@ -427,11 +428,84 @@ void PriceLevelOrderBook::activateStopOrder(Order order) {
 }
 
 void PriceLevelOrderBook::match(Order &order) {
-
+    //  if order is fill or kill and cannot be filled, nothing happens
+    if (order.getTimeInForce == OrderTimeInForce::FOK && !canMatchOrder(order)) {
+        return;
+    }
+    if (order.getType() == OrderSide::SELL) {
+        // since we have a sell order, we would want to match it to some buy order (highest price first)
+        auto buy_levels_it = buy_levels.rbegin();
+        Order &sell_order = order;
+        // while the highest buy price >= price of the sell order and the sell order still has open quantity
+        while (buy_levels_it != buy_levels.rend() && buy_levels_it->first >= sell_order.getPrice() && sell_order.getOpenQuantity() != 0) {
+            Level &buy_level = buy_levels_it->second;
+            // get first buy order
+            Order &buy_order = buy_level.front();
+            uint64_t executing_price = buy_order.getPrice();
+            // sell order is matched with the top buy order in the current level
+            executeOrders(sell_order, buy_order, executing_price);
+            buy_level.reduceVolume(buy_order.getLastExecutedQuantity());
+            // remove buy order if its now filled
+            if (buy_order.getOpenQuantity() == 0)
+                deleteOrder(buy_order.getId());
+            // reset level iterator to the beginning to account for any changes in the order book caused by this new execution
+            buy_levels_it = buy_levels.rbegin();
+        }
+    }
+    if (order.getSide() == OrderSide::BUY) {
+        // since we have a buy order, we would want to match it to some sell order (lowest price first)
+        auto sell_levels_it = sell_levels.begin();
+        Order &buy_order = order;
+        // while the lowest sell price <= price of the buy order and the buy order still has open quantity
+        while (sell_levels_it != sell_levels.end() && sell_levels_it->first <= buy_order.getPrice() && buy_order.getOpenQuantity() != 0) {
+            Level &sell_level = sell_levels_it->second;
+            // get first sell order
+            Order &sell_order = sell_level.front();
+            uint64_t executing_price = sell_order.getPrice();
+            // buy order is matched with the top sell order in the current level
+            executeOrders(sell_order, buy_order, executing_price);
+            sell_level.reduceVolume(sell_order.getLastExecutedQuantity());
+            // remove the sell order if its now filled
+            if (sell_order.getOpenQuantity() == 0)
+                deleteOrder(sell_order.getId());
+            // reset level iterator to the beginning to account for any changes in the order book caused by this new execution
+            sell_levels_it = sell_levels.begin();
+        }
+    }
 }
 
-void PriceLevelOrderBook::canMatchOrder(Order &order) const {
-    
+// helper method to see whether a FOK order can be matched
+bool PriceLevelOrderBook::canMatchOrder(Order &order) const {
+    uint64_t price = order.getPrice();
+    uint64_t quantity_required = order.getOpenQuantity();
+    uint64_t quantity_available = 0; // accumulator to see how much maximum quantity can be matched for this order
+    if (order.getSide() == OrderSide::SELL) {
+        // since we have a sell order, we want to match it to buy orders (highest price first)
+        auto buy_levels_it = buy_levels.rbegin();
+        // while buy level's price is greater than or equal to the sell order's price
+        while (buy_levels_it != buy_levels.rend() && buy_levels_it->first >= price) {
+            // check whether the level has enough quantity to fill this order
+            uint64_t level_volume = buy_levels_it->second.getVolume();
+            uint64_t quantity_needed = quantity_required - quantity_available;
+            quantity_available += std::min(level_volume, quantity_needed);
+            if (quantity_available >= quantity_required)
+                return true;
+        }
+    }
+    else {
+        // since we have a buy order, we want to match it to a sell order (lowest price first)
+        auto sell_levels_it = sell_levels.begin();
+        // while the sell level's price is lower than or equal to the buy order's price
+        while (sell_levels_it != sell_levels.end() && sell_levels_it->first <= price) {
+            // check whether the level has enough quantity to fill this order
+            uint64_t level_volume = sell_levels_it->second.getVolume();
+            uint64_t quantity_needed = quantity_required - quantity_available;
+            quantity_available += std::min(level_volume, quantity_needed);
+            if (quantity_available >= quantity_required)
+                return true;
+        }
+    }
+    return false;
 }
 
 void PriceLevelOrderBook::executeOrders(Order &sell, Order &buy, uint64_t executing_price) {
