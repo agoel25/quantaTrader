@@ -151,13 +151,13 @@ void PriceLevelOrderBook::insertLimitOrder(const Order &order) {
     if (order.getSide() == OrderSide::ASK) {
         // using C++17 structured binding to hold the return value from emplace() 
         // first value is an iterator, second value is a boolean indicating whether emplace was successful
-        auto [level_it, inserted] = ask_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::Ask, symbol_id));
-        auto [orders_it, success] = orders.emplace(order.getOrderID(), OrderWithLevelIterator{order, level_it});
+        auto [level_it, inserted] = ask_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::ASK, symbol_id));
+        auto [orders_it, success] = orders.emplace(order.getId(), OrderWithLevelIterator{order, level_it});
         level_it->second.addOrder(orders_it->second.order);
     }
     else {
-        auto [level_it, inserted] = bid_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::Bid, symbol_id));
-        auto [orders_it, success] = orders.emplace(order.getOrderID(), OrderWithLevelIterator{order, level_it});
+        auto [level_it, inserted] = bid_levels.emplace(order.getPrice(), Level(order.getPrice(), LevelSide::BID, symbol_id));
+        auto [orders_it, success] = orders.emplace(order.getId(), OrderWithLevelIterator{order, level_it});
         level_it->second.addOrder(orders_it->second.order);
     }
 }
@@ -169,9 +169,9 @@ void PriceLevelOrderBook::addStopOrder(Order &order) {
     // get market price at which the stock traded last
     uint64_t market_price = 0;
     if (order.getSide() == OrderSide::ASK) {
-        market_price = lastTradedPriceBid();
+        market_price = lastTradedBidPrice();
     } else {
-        market_price = lastTradedPriceAsk();
+        market_price = lastTradedAskPrice();
     }
     uint64_t order_stop_price = order.getStopPrice();
     // the stop order can be matched if market price <= stop price for ask orders
@@ -206,15 +206,94 @@ void PriceLevelOrderBook::addStopOrder(Order &order) {
 }
 
 void PriceLevelOrderBook::insertStopOrder(const Order &order) {
+    auto stop_price = order.getStopPrice();
+    auto order_id = order.getId();
 
+    if (order.getType() == OrderType::ASK) {
+        auto level_it = stop_ask_levels.emplace(
+            std::piecewise_construct, // to avoid unnecessary copying, gives better performance
+            std::make_tuple(stop_price),
+            std::make_tuple(stop_price, LevelSide::ASK, symbol_id)
+        ).first;
+        
+        auto [orders_it, success] = orders.emplace(
+            order_id, 
+            OrderWithLevelIterator{order, level_it}
+        );
+        level_it->second.addOrder(orders_it->second.order);
+    } else {
+        auto level_it = stop_bid_levels.emplace(
+            std::piecewise_construct,
+            std::make_tuple(stop_price),
+            std::make_tuple(stop_price, LevelSide::BID, symbol_id)
+        ).first;
+        
+        auto [orders_it, success] = orders.emplace(
+            order_id, 
+            OrderWithLevelIterator{order, level_it}
+        );
+        level_it->second.addOrder(orders_it->second.order);
+    }
 }
 
 void PriceLevelOrderBook::insertTrailingStopOrder(const Order &order) {
+    auto stop_price = order.getStopPrice();
+    auto order_id = order.getId();
 
+    if (order.getType() == OrderType::ASK) {
+        auto level_it = trailing_stop_ask_levels.emplace(
+            std::piecewise_construct, // to avoid unnecessary copying, gives better performance
+            std::make_tuple(stop_price),
+            std::make_tuple(stop_price, LevelSide::ASK, symbol_id)
+        ).first;
+        
+        auto [orders_it, success] = orders.emplace(
+            order_id, 
+            OrderWithLevelIterator{order, level_it}
+        );
+        level_it->second.addOrder(orders_it->second.order);
+        orders_it->second.level_it = level_it;
+    } else {
+        auto level_it = trailing_stop_bid_levels.emplace(
+            std::piecewise_construct,
+            std::make_tuple(stop_price),
+            std::make_tuple(stop_price, LevelSide::BID, symbol_id)
+        ).first;
+        
+        auto [orders_it, success] = orders.emplace(
+            order_id, 
+            OrderWithLevelIterator{order, level_it}
+        );
+        level_it->second.addOrder(orders_it->second.order);
+        orders_it->second.level_it = level_it;
+    }
 }
 
 uint64_t PriceLevelOrderBook::calculateStopPrice(Order &order) {
-
+    uint64_t trail_amount = order.getTrailAmount();
+    if (order.getType() == OrderType::ASK) {
+        uint64_t market_price = lastTradedBidPrice();
+        // if trail amount >= market price, set stop price to 0
+        uint64_t new_stop_price = 0;
+        if (trail_amount < market_price) {
+            new_stop_price = market_price - trail_amount;
+        }
+        order.setStopPrice(new_stop_price);
+        return new_stop_price;
+    }
+    else
+    {
+        uint64_t market_price = lastTradedAskPrice();
+        uint64_t = new_stop_price = 0;
+        // set new stop price depending on check for overflow on int 64 when adding market_price and trail_amount
+        if (market_price < (std::numeric_limits<uint64_t>::max() - trail_amount)) {
+            new_stop_price = market_price + trail_amount
+        } else {
+            new_stop_price = std::numeric_limits<uint64_t>::max()
+        }
+        order.setStopPrice(new_stop_price);
+        return new_stop_price;
+    }
 }
 
 void PriceLevelOrderBook::updateBidStopOrders() {

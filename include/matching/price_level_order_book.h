@@ -113,6 +113,9 @@ protected:
 
     void match(Order &order);
 
+    // helper function for match order
+    [[nodiscard]] bool canMatchOrder(const Order &order) const;
+
     // matches 2 orders at a particular price
     void executeOrders(Order &ask, Order &bid, uint64_t executing_price);
 
