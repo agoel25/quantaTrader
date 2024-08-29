@@ -5,6 +5,8 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+
 find_package(Boost REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -18,5 +20,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 enable_testing()
 
-add_executable(main src/main.cpp src/matching/order.cpp)
+# add_executable(main src/main.cpp src/matching/order.cpp)
+add_executable(main ${SOURCES})
 target_link_libraries(main Boost::boost)
