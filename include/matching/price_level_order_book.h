@@ -19,7 +19,7 @@ class PriceLevelOrderBook : public OrderBook {
 public:
     PriceLevelOrderBook(uint32_t symbol_id, EventHandler &event_handler);
 
-    uint32_t getSymbolID() const override {
+    uint32_t getSymbolId() const override {
         return symbol_id;
     }
 
@@ -75,7 +75,7 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const PriceLevelOrderBook &book);
 
 protected:
-    void deleteOrder(uint64_t order_id, bool notification) const override;
+    void deleteOrder(uint64_t order_id) const;
 
     void addMarketOrder(Order &order);
 

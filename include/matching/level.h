@@ -19,7 +19,7 @@ public:
 
     inline uint64_t getPrice() const { return price; }
     inline uint64_t getVolume() const { return volume; }
-    inline uint64_t getSide() const { return side; }
+    inline LevelSide getSide() const { return side; }
     inline uint64_t getSymbolId() const { return symbol_id; }
     inline size_t size() const { return orders.size(); }
     inline size_t empty() const { return orders.empty(); }
@@ -32,6 +32,9 @@ public:
     void addOrder(Order &order);
     void deleteOrder(const Order &order);
     void reduceVolume(uint64_t amount);
+
+    void popFront(); // removes the oldest order inserted in the level
+    void popBack(); // removes the newest order inserted in the level
 
     std::string toString() const;
     friend std::ostream &operator<<(std::ostream &os, const Level &level);

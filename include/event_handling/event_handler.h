@@ -16,7 +16,6 @@ public:
 
     friend class PriceLevelOrderBook;
 
-protected:
     virtual void handleOrderAdded(const OrderAdded &event) {}
     virtual void handleOrderDeleted(const OrderDeleted &event) {}
     virtual void handleOrderUpdated(const OrderUpdated &event) {}

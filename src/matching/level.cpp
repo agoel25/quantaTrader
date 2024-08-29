@@ -14,7 +14,7 @@ const list<Order> &Level::getOrders() const {
     return orders;
 }
 
-list<Order> &Level::getOrders() const {
+list<Order> &Level::getOrders() {
     return orders;
 }
 
@@ -39,28 +39,40 @@ void Level::removeBack() {
     assert(!orders.empty());
     Order &remove = orders.back();
     volume -= remove.getOpenQuantity();
-    order.pop_back();
+    orders.pop_back();
 }
 
-void addOrder(Order &order) {
-    if (order.getSide() == OrderSide::ASK) {
-        assert(side == LevelSide::ASK);
+void Level::addOrder(Order &order) {
+    if (order.getSide() == OrderSide::SELL) {
+        assert(side == LevelSide::SELL);
     } else {
         assert(side == LevelSide::BUY);
     }
-    assert(order.getSymbolID() == symbol_id);
+    assert(order.getSymbolId() == symbol_id);
     volume += order.getOpenQuantity();
     orders.push_back(order);
 }
 
-void deleteOrder(const Order &order) {
+void Level::deleteOrder(const Order &order) {
     volume -= order.getOpenQuantity();
     orders.erase(boost::intrusive::list<Order>::s_iterator_to(order));
 }
 
-void reduceVolume(uint64_t amount) {
+void Level::reduceVolume(uint64_t amount) {
     assert(volume >= amount);
     volume -= amount;
+}
+
+void Level::popFront() {
+    Order &order_to_remove = orders.front();
+    volume -= order_to_remove.getOpenQuantity();
+    orders.pop_front();
+};
+
+void Level::popBack() {
+    Order &order_to_remove = orders.back();
+    volume -= order_to_remove.getOpenQuantity();
+    orders.pop_back();
 }
 
 std::string Level::toString() const {

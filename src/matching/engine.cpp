@@ -1,15 +1,17 @@
+#include <sstream>
+#include <fstream>
 #include "engine.h"
 #include "price_level_order_book.h"
 
 namespace QuantaTrader {
-OrderBookHandler::OrderBookHandler(std::unique_ptr<EventHandler> event_handler): event_handler_(std::move(event_handler)) {}
+OrderBookHandler::OrderBookHandler(std::unique_ptr<EventHandler> event_handler): event_handler(std::move(event_handler)) {}
 
 void OrderBookHandler::addOrderBook(uint32_t symbol_id, std::string symbol_name) {
     auto it = symbol_to_order_book.find(symbol_id);
     if (it != symbol_to_order_book.end()) {
         throw std::runtime_error("Symbol already exists in the book");
     }
-    symbol_to_order_book.insert({symbol_id, std::make_unique<MapOrderBook>(symbol_id, *event_handler)});
+    symbol_to_order_book.insert({symbol_id, std::make_unique<PriceLevelOrderBook>(symbol_id, *event_handler)});
     SymbolAdded symbol_added_event(symbol_id, std::move(symbol_name));
     event_handler->handleSymbolAdded(symbol_added_event);
 }
@@ -25,7 +27,7 @@ void OrderBookHandler::deleteOrderBook(uint32_t symbol_id, std::string symbol_na
 }
 
 void OrderBookHandler::addOrder(const Order &order) {
-    auto it = symbol_to_order_book.find(order.getSymbolID());
+    auto it = symbol_to_order_book.find(order.getSymbolId());
     if (it == symbol_to_order_book.end()) {
         throw std::runtime_error("Symbol does not exist in the book");
     }
@@ -125,8 +127,8 @@ void Engine::cancelOrder(uint32_t symbol_id, uint64_t order_id, uint64_t cancell
     orderbook_handler->cancelOrder(symbol_id, order_id, cancelled_quantity);
 }
 
-void Engine::replaceOrder(uint32_t symbol_id, uint64_t order_id, uint64_t new_order_id, uint64_t new_price) {
-    orderbook_handler->replaceOrder(symbol_id, order_id, new_order_id, new_price);
+void Engine::modifyOrder(uint32_t symbol_id, uint64_t order_id, uint64_t new_order_id, uint64_t new_price) {
+    orderbook_handler->modifyOrder(symbol_id, order_id, new_order_id, new_price);
 }
 
 void Engine::executeOrder(uint32_t symbol_id, uint64_t order_id, uint64_t quantity, uint64_t price) {
@@ -137,7 +139,7 @@ void Engine::executeOrder(uint32_t symbol_id, uint64_t order_id, uint64_t quanti
     orderbook_handler->executeOrder(symbol_id, order_id, quantity);
 }
 
-std::String Engine::toString() const {
+std::string Engine::toString() const {
     return orderbook_handler->toString();
 }
 

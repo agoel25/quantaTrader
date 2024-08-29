@@ -1,6 +1,8 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <limits.h>
-#include "map_orderbook.h"
+#include "price_level_order_book.h"
 #include "event.h"
 
 namespace QuantaTrader {
@@ -13,25 +15,25 @@ PriceLevelOrderBook::PriceLevelOrderBook(uint32_t symbol_id, EventHandler &event
     }
 
 void PriceLevelOrderBook::addOrder(Order order) {
-    event_handler.handleOrderAdded(OrderAdded{order}); // CHECK IF THIS IS FINE
+    event_handler.handleOrderAdded(OrderAdded{order});
     switch (order.getType()) {
         case OrderType::MARKET:
-            addMarketOrder();
+            addMarketOrder(order);
             break;
         case OrderType::LIMIT:
-            addLimitOrder();
+            addLimitOrder(order);
             break;
         case OrderType::STOP:
         case OrderType::STOP_LIMIT:
-        OrderType::TRAILING_STOP:
-        OrderType::TRAILING_STOP_LIMIT:
-            addStopOrder();
+        case OrderType::TRAILING_STOP:
+        case OrderType::TRAILING_STOP_LIMIT:
+            addStopOrder(order);
             break;
     }
     activateStopOrders();
 }
 
-void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
+void PriceLevelOrderBook::deleteOrder(uint64_t order_id) {
     auto orders_it = orders.find(order_id);
     auto &levels_it = orders_it->second.level_it;
     Order &order_to_delete = orders_it->second.order;
@@ -39,8 +41,9 @@ void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
     levels_it->second.deleteOrder(order_to_delete);
     if (levels_it->second.empty()) {
         // delete from appropriate order side the relevant order type
+        bool isSell = order_to_delete.getSide() == OrderSide::SELL;
         switch (order_to_delete.getType()) {
-            bool isSell = order.getSide() == OrderSide::SELL;
+            case OrderType::MARKET:
             case OrderType::LIMIT:
                 if (isSell) {
                     sell_levels.erase(levels_it);
@@ -56,8 +59,8 @@ void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
                     stop_buy_levels.erase(levels_it);
                 }
                 break;
-            OrderType::TRAILING_STOP:
-            OrderType::TRAILING_STOP_LIMIT:
+            case OrderType::TRAILING_STOP:
+            case OrderType::TRAILING_STOP_LIMIT:
                 if (isSell) {
                     trailing_stop_sell_levels.erase(levels_it);
                 } else {
@@ -70,7 +73,7 @@ void PriceLevelOrderBook::deleteOrder(uint64_t order_id) override {
     activateStopOrders();
 }
 
-void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) override {
+void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, uint64_t new_price) {
     auto orders_it = orders.find(order_id);
     Order new_order = orders_it->second.order;
     new_order.setId(new_order_id);
@@ -80,7 +83,7 @@ void PriceLevelOrderBook::modifyOrder(uint64_t order_id, uint64_t new_order_id, 
     activateStopOrders();
 }
 
-void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) override {
+void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) {
     auto orders_it = orders.find(order_id);
     auto &level_it = orders_it->second.level_it;
     Level &level_to_cancel = level_it->second;
@@ -95,7 +98,7 @@ void PriceLevelOrderBook::cancelOrder(uint64_t order_id, uint64_t quantity) over
     activateStopOrders();
 }
 
-void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uint64_t price) override {
+void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uint64_t price) {
     auto orders_it = orders.find(order_id);
     Order &order_to_execute = orders_it->second.order;
     uint64_t executing_quantity = std::min(quantity, order_to_execute.getOpenQuantity());
@@ -110,7 +113,7 @@ void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity, uin
     activateStopOrders();
 }
 
-void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) override {
+void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) {
     auto orders_it = orders.find(order_id);
     Order &order_to_execute = orders_it->second.order;
     uint64_t executing_quantity = std::min(quantity, order_to_execute.getOpenQuantity());
@@ -129,7 +132,7 @@ void PriceLevelOrderBook::executeOrder(uint64_t order_id, uint64_t quantity) ove
 void PriceLevelOrderBook::addMarketOrder(Order &order) {
     // Market orders are traded instantly at the best available price
     if (order.getSide() == OrderSide::SELL) {
-        order.setPrice(0)
+        order.setPrice(0);
     } else {
         order.setPrice(std::numeric_limits<uint64_t>::max());
     }
@@ -184,15 +187,15 @@ void PriceLevelOrderBook::addStopOrder(Order &order) {
     }
     if (match) {
         if (order.getType() == OrderType::STOP || order.getType() == OrderType::TRAILING_STOP) {
-            order.setType(OrderType::Market);
+            order.setType(OrderType::MARKET);
         } else { // for STOP_LIMIT and TRAILING_STOP_LIMIT orders
-            order.setType(OrderType::Limit);
+            order.setType(OrderType::LIMIT);
         }
         order.setStopPrice(0);
         order.setTrailAmount(0);
         event_handler.handleOrderUpdated(OrderUpdated{order});
         if (order.getType() == OrderType::MARKET) {
-            addMarketOrder(order)
+            addMarketOrder(order);
         } else {
             addLimitOrder(order);
         }
@@ -209,7 +212,7 @@ void PriceLevelOrderBook::insertStopOrder(const Order &order) {
     auto stop_price = order.getStopPrice();
     auto order_id = order.getId();
 
-    if (order.getType() == OrderType::SELL) {
+    if (order.getSide() == OrderSide::SELL) {
         auto level_it = stop_sell_levels.emplace(
             std::piecewise_construct, // to avoid unnecessary copying, gives better performance
             std::make_tuple(stop_price),
@@ -240,7 +243,7 @@ void PriceLevelOrderBook::insertTrailingStopOrder(const Order &order) {
     auto stop_price = order.getStopPrice();
     auto order_id = order.getId();
 
-    if (order.getType() == OrderType::SELL) {
+    if (order.getSide() == OrderSide::SELL) {
         auto level_it = trailing_stop_sell_levels.emplace(
             std::piecewise_construct, // to avoid unnecessary copying, gives better performance
             std::make_tuple(stop_price),
@@ -271,7 +274,7 @@ void PriceLevelOrderBook::insertTrailingStopOrder(const Order &order) {
 
 uint64_t PriceLevelOrderBook::calculateStopPrice(Order &order) {
     uint64_t trail_amount = order.getTrailAmount();
-    if (order.getType() == OrderType::SELL) {
+    if (order.getSide() == OrderSide::SELL) {
         uint64_t market_price = lastTradedBuyPrice();
         // if trail amount >= market price, set stop price to 0
         uint64_t new_stop_price = 0;
@@ -284,12 +287,12 @@ uint64_t PriceLevelOrderBook::calculateStopPrice(Order &order) {
     else
     {
         uint64_t market_price = lastTradedSellPrice();
-        uint64_t = new_stop_price = 0;
+        uint64_t new_stop_price = 0;
         // set new stop price depending on check for overflow on int 64 when adding market_price and trail_amount
         if (market_price < (std::numeric_limits<uint64_t>::max() - trail_amount)) {
-            new_stop_price = market_price + trail_amount
+            new_stop_price = market_price + trail_amount;
         } else {
-            new_stop_price = std::numeric_limits<uint64_t>::max()
+            new_stop_price = std::numeric_limits<uint64_t>::max();
         }
         order.setStopPrice(new_stop_price);
         return new_stop_price;
@@ -308,7 +311,7 @@ void PriceLevelOrderBook::updateTrailingBuyStopOrders() {
                 uint64_t new_stop_price = calculateStopPrice(stop_order);
 
                 auto updated_level_it = updated_trailing_levels.emplace(
-                    std::make_tuple(new_stop_price), std::make_tuple(new_stop_price, LevelSide::BUY, symbol_id)).first;
+                    new_stop_price, Level(new_stop_price, LevelSide::BUY, symbol_id)).first;
                 
                 orders[stop_order.getId()].level_it = updated_level_it;
                 level.popFront();
@@ -334,7 +337,7 @@ void PriceLevelOrderBook::updateTrailingSellStopOrders() {
                 uint64_t new_stop_price = calculateStopPrice(stop_order);
 
                 auto updated_level_it = updated_trailing_levels.emplace(
-                    std::make_tuple(new_stop_price), std::make_tuple(new_stop_price, LevelSide::SELL, symbol_id)).first;
+                    new_stop_price, Level(new_stop_price, LevelSide::SELL, symbol_id)).first;
                 
                 orders[stop_order.getId()].level_it = updated_level_it;
                 level.popFront();
@@ -352,11 +355,11 @@ void PriceLevelOrderBook::updateTrailingSellStopOrders() {
 void PriceLevelOrderBook::activateStopOrders() {
     // we keep going till all required stop orders have been activated, since activating some orders can 
     // cause prices to change which inturn activates more stop orders
-    bool continue = true;
-    while (continue) {
-        continue = activateBuyStopOrders();
+    bool cont = true;
+    while (cont) {
+        cont = activateBuyStopOrders();
         updateTrailingSellStopOrders();
-        continue = activateSellStopOrders();
+        cont = activateSellStopOrders();
         updateTrailingBuyStopOrders();
     }
 }
@@ -429,10 +432,10 @@ void PriceLevelOrderBook::activateStopOrder(Order order) {
 
 void PriceLevelOrderBook::match(Order &order) {
     //  if order is fill or kill and cannot be filled, nothing happens
-    if (order.getTimeInForce == OrderTimeInForce::FOK && !canMatchOrder(order)) {
+    if (order.getTimeInForce() == OrderTimeInForce::FOK && !canMatchOrder(order)) {
         return;
     }
-    if (order.getType() == OrderSide::SELL) {
+    if (order.getSide() == OrderSide::SELL) {
         // since we have a sell order, we would want to match it to some buy order (highest price first)
         auto buy_levels_it = buy_levels.rbegin();
         Order &sell_order = order;
@@ -475,7 +478,7 @@ void PriceLevelOrderBook::match(Order &order) {
 }
 
 // helper method to see whether a FOK order can be matched
-bool PriceLevelOrderBook::canMatchOrder(Order &order) const {
+bool PriceLevelOrderBook::canMatchOrder(const Order &order) const {
     uint64_t price = order.getPrice();
     uint64_t quantity_required = order.getOpenQuantity();
     uint64_t quantity_available = 0; // accumulator to see how much maximum quantity can be matched for this order
@@ -518,5 +521,46 @@ void PriceLevelOrderBook::executeOrders(Order &sell, Order &buy, uint64_t execut
     last_traded_price = executing_price;
 }
 
+void PriceLevelOrderBook::exportOrderBook(const std::string &path) const {
+    std::ofstream file(path);
+    file << toString();
+    file.close();
+}
 
+std::string PriceLevelOrderBook::toString() const {
+    std::ostringstream oss;
+    oss << "SYMBOL ID : " << symbol_id << "\n";
+    oss << "LAST TRADED PRICE: " << last_traded_price << "\n";
+    oss << "BUY ORDERS\n";
+    for (const auto& [price, level] : buy_levels) {
+        oss << level.toString();
+    }
+    oss << "SELL ORDERS\n";
+    for (const auto& [price, level] : sell_levels) {
+        oss << level.toString();
+    }
+    oss << "BUY STOP ORDERS\n";
+    for (const auto& [price, level] : stop_buy_levels) {
+        oss << level.toString();
+    }
+    oss << "SELL STOP ORDERS\n";
+    for (const auto& [price, level] : stop_sell_levels) {
+        oss << level.toString();
+    }
+    oss << "BUY TRAILING STOP ORDERS\n";
+    for (const auto& [price, level] : trailing_stop_buy_levels) {
+        oss << level.toString();
+    }
+    oss << "SELL TRAILING STOP ORDERS\n";
+    for (const auto& [price, level] : trailing_stop_sell_levels) {
+        oss << level.toString();
+    }
+    return oss.str();
+}
+
+
+std::ostream &operator<<(std::ostream &os, const PriceLevelOrderBook &book) {
+    os << book.toString();
+    return os;
+}
 }

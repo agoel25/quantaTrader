@@ -67,7 +67,7 @@ public:
     inline uint64_t getExecutedQuantity() const { return executed_quantity; }
     inline uint64_t getOpenQuantity() const { return open_quantity; }
     inline uint64_t getLastExecutedQuantity() const { return last_executed_quantity; }
-    inline std::chrono::time_point<std::chrono::high_resolution_clock> getTimestamp() const { return timestamp; }
+    inline std::chrono::time_point<std::chrono::system_clock> getTimestamp() const { return timestamp; }
 
     bool operator==(const Order &other) const
     {
@@ -80,6 +80,7 @@ public:
     }
 
     std::string toString() const;
+    Order() = default; // default constructor
     // declaring friends so the private section can be accessed
     friend std::ostream &operator<<(std::ostream &os, const Order &order);
     friend class PriceLevelOrderBook;
@@ -87,7 +88,7 @@ public:
 
 private:
     Order(uint64_t id, OrderType type, OrderSide side, OrderTimeInForce time_in_force, uint32_t symbol_id, uint64_t price, uint64_t stop_price, 
-        uint64_t trail_amount, uint64_t quantity, std::chrono::time_point<std::chrono::high_resolution_clock> timestamp);
+        uint64_t trail_amount, uint64_t quantity, std::chrono::time_point<std::chrono::system_clock> timestamp);
 
     inline void setId(uint64_t id) { this->id = id; }
     inline void setType(OrderType type) { this->type = type; }
@@ -121,7 +122,7 @@ private:
     uint64_t executed_quantity;  // Executed quantity
     uint64_t open_quantity;  // Open quantity
     uint64_t last_executed_quantity;  // Quantity of the last portion of the order that was executed
-    std::chrono::time_point<std::chrono::high_resolution_clock> timestamp;  // Time the order was placed
+    std::chrono::time_point<std::chrono::system_clock> timestamp;  // Time the order was placed
 };
 }
 
