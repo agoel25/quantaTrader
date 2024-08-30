@@ -11,22 +11,22 @@ Current benchmarking on an M2 MacBook Pro shows an average per operation speed o
 
 1. **Memory Alignment and Cache Optimization**: data structures are aligned in memory with CPU word boundaries that are in powers of 2. This alignment enhances CPU cache efficiency by reducing the number of cache lines needed to access frequently used data, minimizing cache misses, and improving overall performance.
 
-4. **Minimal Dynamic Memory Allocation**: direct management of objects in containers reduces the overhead associated with frequent dynamic memory operations (like new or delete). Thus reducing overall memory fragmentation and overhead.
+2. **Minimal Dynamic Memory Allocation**: direct management of objects in containers reduces the overhead associated with frequent dynamic memory operations (like new or delete). Thus reducing overall memory fragmentation and overhead.
 
-5. **Asynchronous I/O and Event Handling**: when orders are added, modified, or executed, the corresponding I/O event is handled asynchronously. This ensures the main processing thread is not stalled by I/O operations, thereby reducing waiting times.
+3. **Asynchronous I/O and Event Handling**: when orders are added, modified, or executed, the corresponding I/O event is handled asynchronously. This ensures the main processing thread is not stalled by I/O operations, thereby reducing waiting times.
 
-6. **[Robin Hood Hashing for Efficient Lookup](https://github.com/martinus/robin-hood-hashing)**: Robin Hood hashing is used in in large hash maps to minimize variance in probe lengths, thus ensuring a more uniform distribution of entries. Leads to a much better lookup performance and cache efficiency.
+4. **Robin Hood Hashing for Efficient Lookup**: [Robin Hood](https://github.com/martinus/robin-hood-hashing) hashing is used in in large hash maps to minimize variance in probe lengths, thus ensuring a more uniform distribution of entries. Leads to a much better lookup performance and cache efficiency.
 
-3. **Use of Structured Bindings (auto [a, b])**: this feature from C++17 allows efficient unpacking of tuples returned from functions like emplace(). This minimizes the overhead associated with copying or accessing elements separately.
+5. **Use of Structured Bindings (auto [a, b])**: this feature from C++17 allows efficient unpacking of tuples returned from functions like emplace(). This minimizes the overhead associated with copying or accessing elements separately.
 
-7. **Minimized Copy Operations with std::piecewise_construct**: reduces the number of copies required for constructing elements in maps. This avoids unnecessary copying and enhances performance by directly constructing the elements in place.
+6. **Minimized Copy Operations with std::piecewise_construct**: reduces the number of copies required for constructing elements in maps. This avoids unnecessary copying and enhances performance by directly constructing the elements in place.
 
 ## System Structure
 There are 4 primary components in this system:
-1. **Order**: Represents an individual trading order, with various attributes like price, quantity, symbol, type, etc. Supports order types like market orders, limit orders, stop orders, and trailing stop orders, each with specialized handling functions.
+1. **Order**: Represents an individual trading order, with various attributes like price, quantity, symbol (stock symbol like AAPL for Apple) Supports order types like market orders, limit orders, stop orders, and trailing stop orders, each with specialized handling functions.
 2. **Level**: Represents a collection of orders at a specific price level within the order book. It manages all orders that share the same price and order side, sorted by their entry time (FIFO ordering).
-2. **Order Book**: Each symbol has its own order book that manages all buy and sell levels for that symbol. This has all the complicated logic related to adding, matching, executing, deleting orders.
-3. **Engine**: The central component that orchestrates interactions between various order books and manages global trading operations. Has a separate order book for each symbol: 1000 symbols in the trading engine means 1000 order books.
+3. **Order Book**: Each symbol has its own order book that manages all buy and sell levels for that symbol. This has all the complicated logic related to adding, matching, executing, deleting orders.
+4. **Engine**: The central component that orchestrates interactions between various order books and manages global trading operations. Has a separate order book for each symbol: 1000 symbols in the trading engine means 1000 order books.
 
 Sample Hierarchy:
 ```
@@ -75,11 +75,10 @@ Engine
     git clone https://github.com/agoel25/quantaTrader.git
     cd quantaTrader
     ```
-2. Build the Project: Use the provided build.sh script to automate the build process
+2. Build the Project: The script will create a build directory, run CMake to configure the project, and compile the source files. You will also be able to see the benchmark results if you have google benchmark installed.
     ```
     ./build.sh
     ```
-    The script will create a build directory, run CMake to configure the project, and compile the source files. You will also be able to see the benchmark results if you have google benchmark installed.
 3. Test with Sample Executable: Use the sample executable to test basic functionality
     ```
     ./build/engine_sample
