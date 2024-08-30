@@ -15,7 +15,7 @@ Current benchmarking on an M2 MacBook Pro shows an average per operation latency
 
 3. **Asynchronous I/O and Event Handling**: when orders are added, modified, or executed, the corresponding I/O event is handled asynchronously. This ensures the main processing thread is not stalled by I/O operations, thereby reducing waiting times.
 
-4. **Robin Hood Hashing**: [Robin Hood](https://github.com/martinus/robin-hood-hashing) hashing is used in in large hash maps to minimize variance in probe lengths, thus ensuring a more uniform distribution of entries. Leads to a much better lookup performance and cache efficiency.
+4. **Robin Hood Hashing**: [Robin Hood](https://github.com/martinus/robin-hood-hashing) hashing is used in in large hash maps to minimize variance in probe lengths, thus ensuring a more uniform distribution of entries. This leads to a much better lookup performance and cache efficiency.
 
 5. **Use of Structured Bindings (auto [a, b])**: this feature from C++17 allows efficient unpacking of tuples returned from functions like emplace(). This minimizes the overhead associated with copying or accessing elements separately.
 
@@ -23,7 +23,7 @@ Current benchmarking on an M2 MacBook Pro shows an average per operation latency
 
 ## System Structure
 There are 4 primary components in this system:
-1. **Order**: Represents an individual trading order, with various attributes like price, quantity, symbol (stock symbol like AAPL for Apple) Supports order types like market orders, limit orders, stop orders, and trailing stop orders, each with specialized handling functions.
+1. **Order**: Represents an individual trading order, with various attributes like price, quantity and symbol (stock symbol like AAPL for Apple). Supports order types like market orders, limit orders, stop orders, and trailing stop orders, each with specialized handling functions.
 2. **Level**: Represents a collection of orders at a specific price level within the order book. It manages all orders that share the same price and order side, sorted by their entry time (FIFO ordering).
 3. **Order Book**: Each symbol has its own order book that manages all buy and sell levels for that symbol. This has all the complicated logic related to adding, matching, executing, deleting orders.
 4. **Engine**: The central component that orchestrates interactions between various order books and manages global trading operations. Has a separate order book for each symbol: 1000 symbols in the trading engine means 1000 order books.
@@ -85,7 +85,7 @@ Engine
     ```
 
 ### Benchmarking Results
-**Legend: Last entry gives the result of adding/matching 500,000 orders for 2600 symbols**
+*Legend*: Last entry gives the result of adding/matching 500,000 orders for 2600 symbols
 ![](./resources/benchmark.png)
 
 ### References
