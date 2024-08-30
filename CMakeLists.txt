@@ -5,9 +5,12 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-list(APPEND SOURCES benchmark/benchmark_engine.cpp)
-list(APPEND SOURCES benchmark/generate_orders.cpp)
+file(GLOB_RECURSE BENCHMARK_SOURCES "src/*.cpp")
+list(APPEND BENCHMARK_SOURCES benchmark/benchmark_engine.cpp)
+list(APPEND BENCHMARK_SOURCES benchmark/generate_orders.cpp)
+
+file(GLOB_RECURSE SAMPLE_SOURCES "src/*.cpp")
+list(APPEND SAMPLE_SOURCES sample/engine_sample.cpp)
 
 find_package(Boost REQUIRED)
 find_package(benchmark REQUIRED)
@@ -23,8 +26,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 enable_testing()
 
-# add_executable(main src/main.cpp src/matching/order.cpp)
-# add_executable(main ${SOURCES})
-add_executable(benchmark_engine benchmark/benchmark_engine.cpp ${SOURCES})
-
+add_executable(benchmark_engine benchmark/benchmark_engine.cpp ${BENCHMARK_SOURCES})
 target_link_libraries(benchmark_engine Boost::boost benchmark::benchmark)
+
+add_executable(engine_sample sample/engine_sample.cpp ${SAMPLE_SOURCES})
