@@ -1,14 +1,11 @@
 # quantaTrader
-**quantaTrader** is a highly optimized, low-latency order matching system designed for high-frequency trading (HFT) applications. Written in C++, it is capable of handling millions of orders per second with extremely low latency.
+**quantaTrader** is a highly optimized, low-latency order matching system designed for high-frequency trading (HFT) applications. Written in C++, it is capable of handling millions of orders per second with very low latency.
 
 
 ## Latency
 The primary focus of quantaTrader is low latency. High-frequency trading typically requires microsecond (10^-6 seconds) to sub-microsecond latency per operation to maintain competitiveness in the market. The engine achieves this by employing various optimization techniques.
 
 Current benchmarking on an M2 MacBook Pro shows an average per operation speed of **1.5 microseconds**.
-
-![](./resources/benchmark.png)
-*Legend: last line gives the result of adding/matching 500,000 orders for 2600 symbols*
 
 ## CPU and Memory Optimization
 
@@ -26,10 +23,43 @@ Current benchmarking on an M2 MacBook Pro shows an average per operation speed o
 
 ## System Structure
 There are 4 primary components in this system:
-1. **Order**:
-4. **Level**:
-2. **Order Book**:
-3. **Engine**:
+1. **Order**: Represents an individual trading order, with various attributes like price, quantity, symbol, type, etc. Supports order types like market orders, limit orders, stop orders, and trailing stop orders, each with specialized handling functions.
+2. **Level**: Represents a collection of orders at a specific price level within the order book. It manages all orders that share the same price and order side, sorted by their entry time (FIFO ordering).
+2. **Order Book**: Each symbol has its own order book that manages all buy and sell levels for that symbol. This has all the complicated logic related to adding, matching, executing, deleting orders.
+3. **Engine**: The central component that orchestrates interactions between various order books and manages global trading operations. Has a separate order book for each symbol: 1000 symbols in the trading engine means 1000 order books.
+
+Sample Hierarchy:
+```
+Engine
+│
+├── OrderBook (Symbol: SMPL)
+│   ├── BUY Levels
+│   │   ├── Level (Price: 150.00)
+│   │   │   ├── Order
+│   │   │   └── Order
+│   │   └── Level (Price: 148.00)
+│   │       ├── Order
+│   │       └── Order
+│   │
+│   └── SELL Levels
+│       ├── Level (Price: 151.00)
+│       │   ├── Order
+│       │   └── Order
+│       └── Level (Price: 153.00)
+│           └── Order
+│
+├── OrderBook (Symbol: EXMP)
+│   ├── BUY Levels
+│   │   └── Level (Price: 248.00)
+│   │       └── Order
+│   │
+│   └── SELL Levels
+│       └── Level (Price: 252.00)
+│           ├── Order
+│           └── Order
+
+```
+*Note: for simplicity, details and fields have been truncated. Information in the diagram is not complete*
 
 ## Get Started ## 
 
@@ -54,3 +84,10 @@ There are 4 primary components in this system:
     ```
     ./build/engine_sample
     ```
+
+### Benchmarking Results
+**Legend: Last entry gives the result of adding/matching 500,000 orders for 2600 symbols**
+![](./resources/benchmark.png)
+
+### References
+1. 
