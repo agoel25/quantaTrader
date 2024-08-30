@@ -5,7 +5,7 @@
 ## Latency
 The primary focus of quantaTrader is low latency. High-frequency trading typically requires microsecond (10^-6 seconds) to sub-microsecond latency per operation to maintain competitiveness in the market. The engine achieves this by employing various optimization techniques.
 
-Current benchmarking on an M2 MacBook Pro shows an average per operation speed of **1.5 microseconds**.
+Current benchmarking on an M2 MacBook Pro shows an average per operation latency of **1.5 microseconds**.
 
 ## CPU and Memory Optimization
 
