@@ -353,14 +353,15 @@ void PriceLevelOrderBook::updateTrailingSellStopOrders() {
 }
 
 void PriceLevelOrderBook::activateStopOrders() {
-    // we keep going till all required stop orders have been activated, since activating some orders can 
+    // we keep going till all required stop orders have been activated, since activating some orders can
     // cause prices to change which inturn activates more stop orders
     bool cont = true;
     while (cont) {
-        cont = activateBuyStopOrders();
+        bool activated_buy = activateBuyStopOrders();
         updateTrailingSellStopOrders();
-        cont = activateSellStopOrders();
+        bool activated_sell = activateSellStopOrders();
         updateTrailingBuyStopOrders();
+        cont = activated_buy || activated_sell;
     }
 }
 
